@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quieres ser mi novia?</title>
+    <style>
+        body {
+            background-color: #2c2c54; /* Fondo romántico oscuro */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .game-board {
+            display: flex;
+            flex-wrap: wrap;
+            width: 300px;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .card {
+            width: 80px;
+            height: 120px;
+            background-color: #40407a; /* Color oscuro para las cartas */
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card .front, .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        .card .front {
+            background-color: #596275;
+            transform: rotateY(180deg);
+        }
+
+        .card .back {
+            background-color: #706fd3;
+        }
+
+        #confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <h1>¡Toca las cartas y ordénalas!</h1>
+    <div class="game-board" id="game-board">
+        <div class="card" data-order="1"><div class="front">Hoy</div><div class="back"></div></div>
+        <div class="card" data-order="2"><div class="front">30</div><div class="back"></div></div>
+        <div class="card" data-order="3"><div class="front">de</div><div class="back"></div></div>
+        <div class="card" data-order="4"><div class="front">Noviembre</div><div class="back"></div></div>
+        <div class="card" data-order="5"><div class="front">¿Puedo</div><div class="back"></div></div>
+        <div class="card" data-order="6"><div class="front">ser</div><div class="back"></div></div>
+        <div class="card" data-order="7"><div class="front">tu</div><div class="back"></div></div>
+        <div class="card" data-order="8"><div class="front">novio?</div><div class="back"></div></div>
+    </div>
+
+    <canvas id="confetti"></canvas>
+
+    <script>
+        const cards = document.querySelectorAll('.card');
+        const gameBoard = document.getElementById('game-board');
+        const confettiCanvas = document.getElementById('confetti');
+
+        let flippedCards = [];
+        let correctOrder = [];
+
+        // Shuffle the cards
+        (() => {
+            const cardsArray = Array.from(cards);
+            cardsArray.sort(() => Math.random() - 0.5);
+            cardsArray.forEach(card => gameBoard.appendChild(card));
+        })();
+
+        // Add flip functionality
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                if (!card.classList.contains('flipped')) {
+                    card.classList.add('flipped');
+                    flippedCards.push(card);
+                    if (flippedCards.length === cards.length) {
+                        setTimeout(checkOrder, 500);
+                    }
+                }
+            });
+        });
+
+        // Check if the cards are in order
+        function checkOrder() {
+            flippedCards.forEach(card => correctOrder.push(card.dataset.order));
+            if (JSON.stringify(correctOrder) === JSON.stringify(["1", "2", "3", "4", "5", "6", "7", "8"])) {
+                startConfetti();
+                setTimeout(() => alert('¡Sí! 💖'), 1000);
+            } else {
+                alert('Orden incorrecto, inténtalo de nuevo.');
+                flippedCards.forEach(card => card.classList.remove('flipped'));
+            }
+            flippedCards = [];
+            correctOrder = [];
+        }
+
+        // Confetti animation
+        function startConfetti() {
+            const ctx = confettiCanvas.getContext('2d');
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            const confettis = Array.from({ length: 100 }, () => ({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                r: Math.random() * 6 + 2,
+                d: Math.random() * Math.PI * 2,
+                speed: Math.random() * 3 + 1,
+            }));
+
+            function drawConfetti() {
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                confettis.forEach(confetti => {
+                    ctx.beginPath();
+                    ctx.arc(confetti.x, confetti.y, confetti.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${Math.random() * 255}, 50, ${Math.random() * 255}, 1)`;
+                    ctx.fill();
+                    confetti.y += confetti.speed;
+                    if (confetti.y > confettiCanvas.height) confetti.y = 0;
+                });
+                requestAnimationFrame(drawConfetti);
+            }
+            drawConfetti();
+        }
+    </script>
+</body>
+</html>
